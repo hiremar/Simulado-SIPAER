@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Desafio do Briefing</title>
+<style>
+:root{--bg:#0a1017;--panel:#111a24;--panel2:#16222f;--line:#24364a;--txt:#dde8f3;--mut:#8ea3b8;--grn:#3ddc84;--amb:#ffb547;--red:#ff5b5b;--cyan:#4cc9f0;--mag:#d65cff}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1200px 600px at 70% -10%,#13263a 0,var(--bg) 60%) fixed;color:var(--txt);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+.wrap{max-width:980px;margin:0 auto;padding:16px}
+header{display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:16px}
+header .logo{font-size:28px}
+header h1{font-size:19px;margin:0;letter-spacing:.3px}
+header small{color:var(--mut);display:block;font-size:13px}
+h2{font-size:22px;margin:.2em 0 .4em}
+h3{font-size:17px;margin:1em 0 .4em;color:var(--cyan)}
+p{margin:.5em 0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+.mission{cursor:pointer;transition:.15s;border:1px solid var(--line)}
+.mission:hover{border-color:var(--cyan);transform:translateY(-2px)}
+.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--mut);margin-right:6px}
+.btn{display:inline-block;background:var(--grn);color:#062012;border:0;border-radius:10px;padding:12px 18px;font-weight:700;font-size:16px;cursor:pointer}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.sec{background:transparent;color:var(--txt);border:1px solid var(--line)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.tab{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:14px}
+.tab.on{border-color:var(--cyan);color:var(--cyan)}
+.tab .ck{color:var(--grn);margin-left:4px}
+pre.mono{white-space:pre-wrap;word-break:break-word;background:#07110b;border:1px solid #1d3a28;color:#9ff5c2;border-radius:10px;padding:12px;font:14px/1.5 ui-monospace,Consolas,monospace;margin:8px 0}
+.note{color:var(--mut);font-size:14px}
+.warn{border-left:4px solid var(--amb);background:#2a2110;padding:10px 12px;border-radius:8px;font-size:14px}
+svg{width:100%;height:auto;display:block;border-radius:10px}
+.opt{display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:12px 14px;margin:8px 0;font-size:15px;cursor:pointer;transition:.12s}
+.opt:hover{border-color:var(--cyan)}
+.opt.sel{border-color:var(--grn);background:#10261b}
+.opt b{color:var(--amb);margin-right:6px}
+.dots{display:flex;gap:6px;margin:6px 0 10px}
+.dots span{flex:1;height:6px;border-radius:9px;background:var(--line)}
+.dots span.done{background:var(--grn)}.dots span.now{background:var(--amb)}
+.nar{border-left:4px solid var(--cyan);background:#0e2230;padding:12px 14px;border-radius:8px}
+.badge{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:99px}
+.q-otima{background:#123d26;color:var(--grn)}.q-aceitavel{background:#3a3212;color:var(--amb)}.q-ruim{background:#3d2412;color:#ff9a5b}.q-critica{background:#401414;color:var(--red)}
+.outcome{text-align:center;padding:22px;border-radius:14px;margin:10px 0}
+.outcome h2{font-size:26px;margin:0}
+.o-ok{background:#0f2e1e;border:1px solid var(--grn)}.o-mid{background:#2e2610;border:1px solid var(--amb)}.o-bad{background:#331010;border:1px solid var(--red)}
+.score{font-size:44px;font-weight:800}
+.dec{border-top:1px solid var(--line);padding:10px 0}
+.dec:first-child{border-top:0}
+.mut{color:var(--mut)}
+footer{color:var(--mut);font-size:12px;text-align:center;margin:26px 0 10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="logo">🛩️</div>
+  <div><h1>Desafio do Briefing · Decisão Meteorológica</h1>
+  <small>Prof. Me. Hiremar Soares — Meteorologista · Palestra de Segurança Operacional</small></div>
+</header>
+<div id="app"></div>
+<footer>Material educacional · todos os dados são fictícios/simulados · não utilizar para planejamento ou decisão operacional real.</footer>
+</div>
+
+<script>
+/* =========================================================
+   1) UTILITÁRIOS E DESENHOS (SVG)
+   ========================================================= */
+const app = document.getElementById('app');
+const top0 = () => window.scrollTo({top:0,behavior:'smooth'});
+const plane = (x,y,rot=0,c='#fff') => `<g transform="translate(${x},${y}) rotate(${rot})"><path d="M0,-12 L3,-3 L13,2 L13,5 L3,2 L2,9 L5,12 L5,14 L0,12 L-5,14 L-5,12 L-2,9 L-3,2 L-13,5 L-13,2 L-3,-3 Z" fill="${c}"/></g>`;
+const heli = (x,y,c='#fff') => `<g transform="translate(${x},${y})"><ellipse cx="0" cy="0" rx="13" ry="6" fill="${c}"/><rect x="8" y="-2" width="20" height="3" fill="${c}"/><rect x="-20" y="-11" width="40" height="2" fill="${c}"/><rect x="-1" y="-10" width="2" height="5" fill="${c}"/><rect x="-10" y="7" width="20" height="2" fill="${c}"/></g>`;
+const apt = (x,y,n,c='#fff') => `<circle cx="${x}" cy="${y}" r="4" fill="${c}" stroke="#000" stroke-width="1"/><text x="${x+7}" y="${y-6}" fill="${c}" font-size="13" font-weight="700" font-family="system-ui" paint-order="stroke" stroke="#000" stroke-width="3">${n}</text>`;
+
+// Imagem de satélite IR realçada (Missão 1)
+function satConv(){
+  const cells=[[70,70,26],[95,110,30],[110,150,24],[90,175,22],[120,200,34],[140,245,28],[150,290,26],[60,140,20],[45,200,18]];
+  const L=[['#9aa4ae',1.9],['#2ecc71',1.4],['#f1c40f',1.0],['#e74c3c',.65],['#d65cff',.33]];
+  let g='';
+  L.forEach(([c,k])=>{ cells.forEach(([x,y,r])=>{ g+=`<circle cx="${x}" cy="${y}" r="${r*k}" fill="${c}"/>`; }); });
+  const lowc=[[300,90,40],[420,60,30],[480,140,35],[250,320,40],[380,330,30]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="#7d8792" opacity=".55"/>`).join('');
+  return `<svg viewBox="0 0 600 380"><defs>
+  <filter id="cl1"><feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="3" seed="4"/><feDisplacementMap in="SourceGraphic" scale="28"/><feGaussianBlur stdDeviation="2.2"/></filter>
+  <filter id="cl2"><feTurbulence type="fractalNoise" baseFrequency=".02" numOctaves="2" seed="9"/><feDisplacementMap in="SourceGraphic" scale="40"/><feGaussianBlur stdDeviation="6"/></filter></defs>
+  <rect width="600" height="380" fill="#262b31"/>
+  <path d="M0,330 Q150,300 260,350 T600,300" stroke="#3a4048" fill="none"/><path d="M200,0 Q220,150 330,200 T420,380" stroke="#3a4048" fill="none"/><path d="M430,0 Q470,160 600,190" stroke="#3a4048" fill="none"/>
+  <g filter="url(#cl2)">${lowc}</g><g filter="url(#cl1)">${g}</g>
+  <line x1="525" y1="293" x2="120" y2="136" stroke="#4cc9f0" stroke-width="3" stroke-dasharray="8 6"/>
+  ${apt(525,293,'SBGR')}${apt(120,136,'SBCG','#ffd166')}${apt(265,152,'SBTG')}${apt(105,228,'SBDO')}${apt(280,228,'SBDN')}
+  <path d="M175,250 l40,0" stroke="#fff" stroke-width="2"/><text x="178" y="243" fill="#fff" font-size="11">MOV E 20KT</text>
+  <rect x="8" y="8" width="300" height="22" rx="4" fill="#000a"/><text x="14" y="24" fill="#fff" font-size="12">GOES-19 · IR realçado (canal 13) · 06/10 18:00Z — SIMULADO</text>
+  <g transform="translate(400,350)"><rect width="190" height="22" rx="4" fill="#000a"/>
+  ${['#9aa4ae','#2ecc71','#f1c40f','#e74c3c','#d65cff'].map((c,i)=>`<rect x="${6+i*36}" y="5" width="30" height="7" fill="${c}"/><text x="${6+i*36}" y="20" fill="#fff" font-size="8">${['-20','-40','-50','-60','-70'][i]}°C</text>`).join('')}</g>
+  </svg>`;
+}
+// Imagem de satélite visível (Missão 2)
+function satCfit(){
+  const st=[[230,240,40],[280,225,45],[330,215,50],[380,200,50],[430,180,48],[480,160,45],[530,140,45],[400,110,55],[450,90,55],[500,80,50],[350,120,45],[300,130,40],[560,70,40],[440,60,40]];
+  const clouds=st.map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="#e9eef3"/>`).join('');
+  return `<svg viewBox="0 0 600 380"><defs><filter id="vs"><feTurbulence type="fractalNoise" baseFrequency=".03" numOctaves="4" seed="2"/><feDisplacementMap in="SourceGraphic" scale="35"/><feGaussianBlur stdDeviation="3"/></filter></defs>
+  <rect width="600" height="380" fill="#3d4a35"/>
+  <path d="M120,300 C250,260 380,200 600,120 L600,170 C420,240 300,290 140,330 Z" fill="#4c5a41"/>
+  <path d="M220,40 C320,110 440,50 600,20 L600,0 L200,0 Z" fill="#33402c"/>
+  <circle cx="150" cy="290" r="45" fill="#6b6b66"/><text x="105" y="345" fill="#ddd" font-size="11">Grande São Paulo</text>
+  <g filter="url(#vs)" opacity=".93">${clouds}</g>
+  <text x="300" y="30" fill="#fff" font-size="12" font-style="italic" paint-order="stroke" stroke="#000" stroke-width="3">Serra da Mantiqueira</text>
+  <text x="250" y="300" fill="#fff" font-size="12" font-style="italic" paint-order="stroke" stroke="#000" stroke-width="3">Vale do Paraíba</text>
+  <polyline points="153,281 365,210 458,162 439,86" fill="none" stroke="#4cc9f0" stroke-width="3" stroke-dasharray="8 6"/>
+  <line x1="153" y1="281" x2="439" y2="86" stroke="#ffb547" stroke-width="2" stroke-dasharray="3 5"/>
+  ${apt(153,281,'SBMT')}${apt(365,210,'SBSJ')}${apt(458,162,'SBTA')}${apt(439,86,'C. Jordão','#ffd166')}
+  <rect x="8" y="350" width="340" height="22" rx="4" fill="#000a"/><text x="14" y="366" fill="#fff" font-size="12">GOES-19 · Visível · 06/10 11:30Z — SIMULADO · azul: vale · laranja: direta</text>
+  </svg>`;
+}
+// Radar meteorológico de bordo
+function radar(cells,o={}){
+  const ax=200,ay=245,R=225;
+  const a=d=>[ax+R*Math.sin(d*Math.PI/180),ay-R*Math.cos(d*Math.PI/180)];
+  const [x1,y1]=a(-60),[x2,y2]=a(60);
+  const col=['#2ecc71','#f1c40f','#e74c3c','#d65cff'],k=[1,.68,.45,.25];
+  let cs='';
+  for(let i=0;i<4;i++) cells.forEach(c=>{ if(c.i>i) cs+=`<circle cx="${c.x}" cy="${c.y}" r="${c.r*k[i]}" fill="${col[i]}"/>`; });
+  const rings=[75,150,225].map((r,i)=>`<circle cx="${ax}" cy="${ay}" r="${r}" fill="none" stroke="#2c4a3a" stroke-dasharray="3 4"/><text x="${ax+4}" y="${ay-r+12}" fill="#5f8f74" font-size="10">${(i+1)*40} NM</text>`).join('');
+  return `<svg viewBox="0 0 400 260"><defs><clipPath id="sec"><path d="M${ax},${ay} L${x1},${y1} A${R},${R} 0 0 1 ${x2},${y2} Z"/></clipPath>
+  <filter id="rb"><feTurbulence type="fractalNoise" baseFrequency=".08" numOctaves="2" seed="5"/><feDisplacementMap in="SourceGraphic" scale="14"/><feGaussianBlur stdDeviation="1.2"/></filter></defs>
+  <rect width="400" height="260" fill="#050a07"/>
+  <g clip-path="url(#sec)"><path d="M${ax},${ay} L${x1},${y1} A${R},${R} 0 0 1 ${x2},${y2} Z" fill="#07130c"/>${o.anvil?`<ellipse cx="${o.anvil[0]}" cy="${o.anvil[1]}" rx="90" ry="40" fill="#9aa4ae" opacity=".18"/>`:''}<g filter="url(#rb)">${cs}</g>${rings}</g>
+  ${o.apt?apt(o.apt[0],o.apt[1],o.apt[2],'#ffd166'):''}
+  ${o.path?`<polyline points="${o.path}" fill="none" stroke="#4cc9f0" stroke-width="2" stroke-dasharray="6 4"/>`:''}
+  ${plane(ax,ay-6,0,'#fff')}
+  <text x="8" y="16" fill="#9ff5c2" font-size="11" font-family="monospace">${o.label||'WX RADAR · TILT −1° · GAIN CAL'}</text>
+  ${o.warn?`<text x="392" y="16" text-anchor="end" fill="#ff5b5b" font-size="11" font-family="monospace">${o.warn}</text>`:''}
+  </svg>`;
+}
+// Tela de datalink (com latência)
+function datalink(){
+  return `<svg viewBox="0 0 400 220"><defs><filter id="dl"><feTurbulence type="fractalNoise" baseFrequency=".05" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="20"/><feGaussianBlur stdDeviation="2"/></filter></defs>
+  <rect width="400" height="220" fill="#0b1520"/><g filter="url(#dl)">
+  ${[[70,60,26],[85,100,30],[95,140,26],[110,180,22]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="#2ecc71"/><circle cx="${x}" cy="${y}" r="${r*.65}" fill="#f1c40f"/><circle cx="${x}" cy="${y}" r="${r*.4}" fill="#e74c3c"/>`).join('')}</g>
+  <line x1="360" y1="170" x2="110" y2="95" stroke="#4cc9f0" stroke-width="2" stroke-dasharray="6 4"/>${plane(330,160,-70)}${apt(110,95,'SBCG','#ffd166')}
+  <rect x="8" y="8" width="150" height="20" rx="3" fill="#000" stroke="#ffb547"/><text x="14" y="22" fill="#ffb547" font-size="12" font-family="monospace">DATA AGE: 14 MIN</text>
+  <text x="392" y="22" text-anchor="end" fill="#ff5b5b" font-size="11" font-family="monospace">LATENCY WARNING</text></svg>`;
+}
+// Final curta com microburst
+function approach(){
+  let arr=''; for(let i=0;i<4;i++){const x=170+i*22; arr+=`<path d="M${x},20 L${x},110 l-7,-10 M${x},110 l7,-10" stroke="#ff5b5b" stroke-width="3" fill="none"/>`;}
+  return `<svg viewBox="0 0 400 220"><rect width="400" height="220" fill="#0b1520"/>
+  <ellipse cx="205" cy="40" rx="110" ry="30" fill="#5c6670" opacity=".6"/>${arr}
+  <path d="M100,130 C70,140 40,150 10,160" stroke="#3ddc84" stroke-width="3" fill="none"/><text x="20" y="150" fill="#3ddc84" font-size="11">vento de proa (IAS ↑)</text>
+  <path d="M300,130 C330,140 360,150 392,160" stroke="#ffb547" stroke-width="3" fill="none"/><text x="300" y="175" fill="#ffb547" font-size="11">vento de cauda (IAS ↓)</text>
+  <line x1="20" y1="80" x2="380" y2="190" stroke="#4cc9f0" stroke-dasharray="5 5"/>
+  <rect x="300" y="195" width="100" height="10" fill="#555"/><text x="305" y="215" fill="#ccc" font-size="10">RWY 24</text>
+  ${plane(120,110,110)}<text x="8" y="16" fill="#ff5b5b" font-size="13" font-family="monospace" font-weight="700">⚠ WINDSHEAR</text></svg>`;
+}
+// Perfil de terreno e nuvens (Missão 2)
+function profile(o){
+  const base=o.base??90, top=o.top??30;
+  const rain=o.rain?Array.from({length:40},(_,i)=>`<line x1="${10+i*10}" y1="${base+5}" x2="${4+i*10}" y2="${base+25}" stroke="#8fb3d9" opacity=".5"/>`).join(''):'';
+  return `<svg viewBox="0 0 400 220"><defs><filter id="pf"><feTurbulence type="fractalNoise" baseFrequency=".04" numOctaves="3" seed="7"/><feDisplacementMap in="SourceGraphic" scale="18"/><feGaussianBlur stdDeviation="3"/></filter></defs>
+  <rect width="400" height="220" fill="#0f1c2a"/>
+  <path d="M0,200 L0,185 C60,180 120,182 170,175 C220,160 250,120 290,85 C310,70 330,60 345,55 C360,62 380,70 400,80 L400,220 L0,220 Z" fill="#2f3d2b"/>
+  ${rain}
+  <g filter="url(#pf)">${o.hole?`<rect x="-20" y="${top}" width="270" height="${base-top}" fill="#c9d1d9" opacity=".9"/><rect x="300" y="${top}" width="140" height="${base-top}" fill="#c9d1d9" opacity=".9"/><rect x="250" y="${top}" width="50" height="${(base-top)*.4}" fill="#c9d1d9" opacity=".9"/>`:`<rect x="-20" y="${top}" width="440" height="${base-top}" fill="#c9d1d9" opacity=".9"/>`}</g>
+  ${o.heli?heli(o.heli[0],o.heli[1],'#ffd166'):''}
+  ${o.lbl?`<text x="8" y="16" fill="#fff" font-size="12" font-family="monospace">${o.lbl}</text>`:''}
+  <text x="330" y="48" fill="#fff" font-size="10" opacity=".8">serra</text></svg>`;
+}
+// Entrada inadvertida em IMC
+function iimc(){
+  return `<svg viewBox="0 0 400 220"><rect width="400" height="220" fill="#aeb6bd"/>
+  <rect width="400" height="220" fill="#d7dde2" opacity=".6"/>
+  ${Array.from({length:25},(_,i)=>`<circle cx="${(i*67)%400}" cy="${(i*41)%220}" r="2" fill="#7c8a96"/>`).join('')}
+  <g transform="translate(200,115)"><circle r="55" fill="#222"/><clipPath id="ai"><circle r="48"/></clipPath>
+  <g clip-path="url(#ai)" transform="rotate(-25)"><rect x="-80" y="-80" width="160" height="80" fill="#3b82c4"/><rect x="-80" y="0" width="160" height="80" fill="#8a5a2b"/><line x1="-80" y1="0" x2="80" y2="0" stroke="#fff" stroke-width="2"/></g>
+  <path d="M-30,0 h20 l10,8 l10,-8 h20" stroke="#ffd166" stroke-width="4" fill="none"/></g>
+  <text x="8" y="18" fill="#333" font-size="13" font-weight="700">IMC · sem horizonte · inclinação 25° sem perceber</text></svg>`;
+}
+
+/* =========================================================
+   2) MISSÕES (é aqui que você edita textos, dados e pontos)
+   Qualidade das opções: otima | aceitavel | ruim | critica
+   ========================================================= */
+const MISSIONS = {
+conv:{
+  title:'Missão 1 · Linha de Instabilidade',
+  route:'SBGR → SBCG', aircraft:'Jato executivo bimotor · voo IFR', etd:'ETD 18:30Z · ETE 1h35 · ETA ~20:05Z',
+  intro:'Você é o comandante de um voo levando uma equipe de São Paulo/Guarulhos para Campo Grande. Uma frente avança sobre o Paraguai e o Mato Grosso do Sul. Faça o briefing, planeje e decida.',
+  products:[
+    {id:'sat',label:'🛰️ Satélite',key:true,html:()=>satConv()+'<p class="note">Topos muito frios (vermelho/magenta) indicam CBs profundos. Observe a orientação da linha, o deslocamento e onde fica o destino.</p>'},
+    {id:'metar',label:'METAR',key:true,html:()=>`<pre class="mono">METAR SBGR 061800Z 12008KT 9999 SCT035 27/16 Q1015=
+METAR SBCG 061800Z 33012KT 9999 VCTS FEW030CB BKN040 33/19 Q1008=
+METAR SBTG 061800Z 35010KT 9999 FEW040 34/17 Q1009=
+METAR SBDO 061800Z 28018G30KT 4000 TSRA BKN015 FEW030CB 24/20 Q1010=
+METAR SBDN 061800Z 34008KT CAVOK 33/15 Q1011=</pre>`},
+    {id:'taf',label:'TAF',key:true,html:()=>`<pre class="mono">TAF SBCG 061100Z 0612/0712 33010KT 9999 SCT040 TX34/0618Z TN20/0709Z
+ TEMPO 0619/0622 27025G45KT 2000 TSRA BKN012 FEW025CB
+ BECMG 0622/0624 20008KT 9999 SCT030 RMK PGU=
+
+TAF SBTG 061100Z 0612/0712 35008KT 9999 FEW040 TX35/0618Z TN21/0709Z
+ PROB30 TEMPO 0703/0707 4000 TSRA BKN020 FEW030CB RMK PGU=
+
+TAF SBDO 061100Z 0612/0712 33012KT 9999 SCT035 TX32/0617Z TN19/0709Z
+ TEMPO 0616/0621 28025G40KT 1500 +TSRA BKN010 FEW025CB RMK PGU=
+
+TAF SBDN 061100Z 0612/0712 34008KT CAVOK TX34/0618Z TN20/0709Z RMK PGU=</pre>`},
+    {id:'adw',label:'AD WRNG',key:true,html:()=>`<pre class="mono">SBCG AD WRNG 2 VALID 061900/062200 TS SFC WSPD 25KT MAX 45 FCST INTSF=
+
+SBDO AD WRNG 1 VALID 061630/062030 TS SFC WSPD 25KT MAX 40 OBS=</pre><p class="note">Sem avisos vigentes para SBGR, SBTG e SBDN.</p>`},
+    {id:'sigmet',label:'SIGMET',key:true,html:()=>`<pre class="mono">SBCW SIGMET 4 VALID 061700/062100 SBCW-
+SBCW CURITIBA FIR EMBD TS FCST WI S1900 W05630 - S1930 W05430 -
+S2300 W05330 - S2330 W05530 - S1900 W05630 TOP FL450 MOV E 20KT INTSF=</pre>`},
+    {id:'sigwx',label:'SIGWX',key:false,html:()=>`<pre class="mono">SIGWX FL250-630 · VT 061800Z (simulada)
+- EMBD CB TOP FL450 sobre o MS (área do SIGMET)
+- JET 110KT FL390 sobre SP/PR
+- Tropopausa FL480</pre>`}
+  ],
+  plan:[
+    {id:'janela',q:'Pergunta de briefing: segundo o TAF e o AD WRNG, qual a janela de maior risco em SBCG?',opts:[
+      {t:'Entre 12Z e 18Z',q:'ruim',pts:0,fb:'O TAF mostra VMC nesse período; a ameaça está no TEMPO 0619/0622 e no AD WRNG 1900/2200.'},
+      {t:'Entre 19Z e 22Z',q:'otima',pts:6,fb:'Correto: TEMPO 0619/0622 com TSRA e rajadas de 45 kt, confirmado pelo AD WRNG 1900/2200. Seu ETA (~20:05Z) cai bem no meio dela.'},
+      {t:'Após 00Z',q:'ruim',pts:0,fb:'Após 22–24Z o TAF indica BECMG com melhora. O pico é 19Z–22Z.'}]},
+    {id:'alt',q:'Escolha o aeródromo de alternativa:',opts:[
+      {t:'SBDO — Dourados (mais próximo de SBCG pelo sul)',q:'critica',pts:0,flags:{alt:'SBDO'},fb:'SBDO já está sob a linha (METAR com TSRA, AD WRNG vigente, TEMPO até 21Z). A alternativa precisa estar fora da ameaça que atinge o destino.'},
+      {t:'SBTG — Três Lagoas (sobre a rota, à frente da linha)',q:'otima',pts:7,flags:{alt:'SBTG'},fb:'SBTG está na rota, a leste da linha, VMC e com TS só como PROB30 após 03Z. É a alternativa que não compartilha a ameaça do destino.'},
+      {t:'SBDN — Presidente Prudente (CAVOK, porém mais distante)',q:'aceitavel',pts:4,flags:{alt:'SBDN'},fb:'Meteorologia boa, mas mais longe de SBCG: exige mais combustível. Válida, mas SBTG era melhor.'}]},
+    {id:'fuel',q:'Combustível extra além do mínimo regulamentar:',opts:[
+      {t:'Mínimo + 15 min',q:'aceitavel',pts:3,flags:{fuel:'15'},fb:'Ajuda, mas com tempestade prevista exatamente no ETA, 15 min dão pouca margem para espera e desvios.'},
+      {t:'Somente o mínimo regulamentar (economia)',q:'ruim',pts:0,flags:{fuel:'min'},fb:'Com TS prevista no ETA, combustível mínimo elimina a opção mais segura: esperar a célula passar. Combustível é barreira de segurança.'},
+      {t:'Mínimo + 45 min para espera/desvios',q:'otima',pts:7,flags:{fuel:'45'},fb:'O TAF indica melhora após 22Z: combustível para espera transforma a tempestade em atraso, não em risco.'}]}
+  ],
+  steps:[
+    {title:'Subida — passando o FL150',scene:()=>datalink(),
+     text:()=>'Decolagem de SBGR às 18:30Z. Na tela do datalink aparece a linha de instabilidade sobre o MS. No canto da tela: <b>idade da imagem 14 min</b>.',
+     data:()=>'Imagem datalink: 18:16Z · linha de CB a ~250 NM · deslocamento para E a 20 kt',
+     opts:s=>[
+      {t:'Usar a imagem do datalink para já traçar o desvio final perto de SBCG',q:'ruim',pts:2,risk:15,nar:'Você desenha o desvio sobre uma imagem de 14 minutos atrás. A 20 kt, a linha já andou quase 5 NM — e células nascem e morrem nesse intervalo.',fb:'Datalink é ótimo para a visão estratégica, mas a latência (5–15 min) mostra onde a tempestade ESTAVA. Desvio tático se faz com radar de bordo e informação atualizada.'},
+      {t:'Pedir o METAR/SPECI atualizado de SBCG e da alternativa e ficar atento aos PIREPs',q:'otima',pts:10,risk:0,nar:'SPECI SBCG 1835Z: ainda VMC, mas com CB a oeste do aeródromo. Um PIREP relata turbulência moderada no FL330 perto de Três Lagoas. Sua "foto" agora é atual.',fb:'Briefing é ciclo: planejar → consciência situacional → reavaliar em voo. Informação atualizada e PIREPs fecham esse ciclo (fluxo proativo do SMS).'},
+      {t:'Nada a fazer por enquanto: o briefing em solo já cobriu tudo',q:'ruim',pts:0,risk:15,nar:'Você segue com a foto das 18:00Z. A atmosfera, porém, não esperou.',fb:'A atmosfera é fluida. Sem reavaliação, o planejamento envelhece a cada minuto, principalmente com uma linha em deslocamento.'}]},
+    {title:'Cruzeiro FL370 — 120 NM de SBCG',
+     scene:()=>radar([{x:140,y:90,r:45,i:4},{x:255,y:85,r:48,i:4},{x:300,y:160,r:25,i:2}],{warn:'TOPS ~FL450'}),
+     text:()=>'O radar de bordo mostra duas células intensas à frente, com um corredor de ~10 NM entre elas. Topos estimados no FL450. O ACC informa que outras aeronaves estão desviando pelo norte.',
+     data:()=>'Radar: duas células com eco intenso · corredor ≈ 10 NM · topos ≈ FL450 · vento no FL370: 280/45 kt',
+     opts:s=>[
+      {t:'Subir para o FL410 e passar por cima das células',q:'ruim',pts:2,risk:35,nar:'Perto do teto da aeronave, com margem estreita de velocidade, você encontra topos ainda crescendo. Turbulência severa por 3 minutos; um tripulante sofre contusão leve.',fb:'Topos acima do FL350 são ameaça extrema. A FAA AC 00-24C recomenda livrar o topo com ~1.000 ft para cada 10 kt de vento no nível: com 45 kt, seriam ~4.500 ft acima do FL450 — impossível aqui.'},
+      {t:'Solicitar desvio pelo norte mantendo no mínimo 20 NM das células de eco intenso',q:'otima',pts:10,risk:s.flags.fuel==='min'?10:0,nar:s.flags.fuel==='min'?'Desvio aprovado: +12 min de voo em ar calmo. Mas o combustível mínimo começa a pesar nas próximas decisões.':'Desvio aprovado: +12 min de voo em ar calmo. O combustível extra cobre o desvio com folga.',fb:'Regra dos 20 NM: distância lateral mínima de células severas ou de eco intenso. Desviar custa minutos; atravessar pode custar a aeronave.'},
+      {t:'Atravessar pelo corredor de 10 NM entre as células — é o caminho mais curto',q:'critica',pts:0,risk:55,nar:'No meio do corredor: turbulência severa e granizo no radome e no para-brisa. Dois passageiros sem cinto se ferem. A aeronave sai do outro lado com danos.',fb:'Um corredor de 10 NM entre duas células significa passar a ~5 NM de cada uma — dentro da zona de granizo e turbulência. A regra dos 20 NM vale para CADA célula.'}]},
+    {title:'Início da descida — 60 NM de SBCG',
+     scene:()=>radar([{x:150,y:60,r:55,i:4},{x:215,y:120,r:60,i:1},{x:270,y:70,r:40,i:3}],{apt:[205,95,'SBCG'],anvil:[205,110],label:'WX RADAR · área verde sob a bigorna'}),
+     text:()=>'A linha está sobre SBCG. Entre você e o aeródromo há uma área de eco apenas verde, sob a extensão da bigorna. Novo SPECI recebido:',
+     data:()=>'SPECI SBCG 061945Z 27028G45KT 1500 +TSRA BKN010 FEW025CB 22/19 Q1011=\nTAF SBCG: BECMG 0622/0624 — melhora prevista após 22Z',
+     opts:s=>{
+      const f=s.flags, alt=f.alt||'SBTG';
+      let dv;
+      if(alt==='SBTG') dv={q:'otima',pts:10,risk:0,nar:'Você prossegue para SBTG, à frente da linha. Pouso tranquilo com vento calmo; os passageiros seguem por terra ou aguardam a linha passar.',fb:'Alternativa bem escolhida no solo vira decisão fácil no ar. SBTG não compartilhava a ameaça do destino.'};
+      else if(alt==='SBDN') dv={q:'aceitavel',pts:6,risk:f.fuel==='min'?40:0,nar:f.fuel==='min'?'SBDN está CAVOK, mas é longe: você pousa com combustível abaixo da reserva final, após declarar emergência de combustível.':'SBDN está CAVOK. O voo é mais longo, mas o pouso é tranquilo.',fb:'Divergir foi seguro, mas a alternativa distante consome combustível. Alternativa + combustível são decididos juntos no planejamento.'};
+      else dv={q:'critica',pts:0,risk:55,nar:'Você segue para SBDO… e encontra a mesma linha: +TSRA e rajadas de 40 kt. Pouso com vento cruzado forte e aquaplanagem parcial; a aeronave para a poucos metros do fim da pista.',fb:'A alternativa estava sob a mesma ameaça do destino (METAR, TAF e AD WRNG mostravam isso). Alternativa ruim não é alternativa.'};
+      const hold = f.fuel==='45' ? {q:'otima',pts:10,risk:0,nar:'Você entra em espera a leste, longe das células. Às 20:35Z a célula principal já se afastou do aeródromo.',fb:'Esperar fora da área (o TAF indicava melhora) é mitigação clássica — desde que haja combustível. Por isso o combustível extra do planejamento importa.'}
+        : f.fuel==='15' ? {q:'aceitavel',pts:6,risk:10,nar:'Você entra em espera. A espera consome sua margem: a partir de agora o combustível da alternativa está contado.',fb:'Esperar era boa ideia, mas com só 15 min extras a margem acaba rápido. Combustível define quantas opções você terá no ar.'}
+        : {q:'ruim',pts:2,risk:35,nar:'Após 15 min de espera, o combustível atinge o mínimo e você declara emergência de combustível. Agora terá de pousar na próxima oportunidade, seja qual for o tempo.',fb:'Sem combustível extra, a espera transforma uma tempestade em emergência. A decisão sobre combustível em solo limitou as opções em voo.'};
+      return [
+       Object.assign({t:`Prosseguir agora para a alternativa (${alt})`,end:'divert',endText:`Pouso na alternativa ${alt}.`},dv),
+       {t:'Descer pela área de eco verde sob a bigorna para encurtar o caminho',q:'critica',pts:0,risk:45,nar:'O "verde" sob a bigorna era granizo: para-brisa trincado e radome danificado. A tripulação passa a voar sob alto estresse.',fb:'Radar mede hidrometeoros, não granizo lançado pela bigorna, turbulência ou visibilidade. Voar sob a bigorna é proibição absoluta (AC 00-24C).'},
+       Object.assign({t:'Entrar em espera a leste, fora da área, aguardando a passagem da linha',flags:{held:true}},hold)];
+     }},
+    {title:'Aproximação — 20 NM de SBCG',
+     scene:()=>radar([{x:240,y:70,r:35,i:3},{x:120,y:40,r:40,i:2}],{apt:[200,110,'SBCG'],path:'200,239 200,110'}),
+     text:()=>'A célula principal se deslocou para leste, mas ainda há uma célula residual perto da cabeceira. O AD WRNG continua válido até 22:00Z.',
+     data:()=>'SPECI SBCG 062040Z 25018G30KT 6000 -TSRA SCT015 FEW030CB 21/19 Q1012=\nPIREP: aeronave à frente reportou variação de −20 kt a 400 ft na final 24 (WS)',
+     opts:s=>{const m=s.flags.fuel==='min';return[
+      {t:'Prosseguir com briefing de windshear: critérios de arremetida definidos e velocidade conforme procedimento',q:'aceitavel',pts:7,risk:10,nar:'A tripulação está preparada: se houver sinal de windshear, a decisão já está tomada.',fb:'Prosseguir com ameaça conhecida é aceitável SE houver gatilhos claros de arremetida. Mas esperar a célula se afastar elimina a ameaça em vez de só gerenciá-la.'},
+      {t:'Prosseguir normalmente — o pior já passou',q:'ruim',pts:2,risk:25,nar:'Você inicia a final sem briefing específico de windshear.',fb:'PIREP de windshear na final + CB próximo + AD WRNG vigente = cenário clássico de microburst. "O pior já passou" é viés de continuação.'},
+      {t:'Aguardar mais 15–20 min em espera até a célula residual se afastar',q:m?'aceitavel':'otima',pts:m?5:10,risk:m?25:0,flags:{waited:true},nar:m?'Com o combustível no limite, a espera aumenta muito a pressão sobre a tripulação.':'Após 18 min, o radar mostra a célula se afastando e as rajadas diminuem.',fb:m?'Esperar era o certo, mas o combustível mínimo transformou a boa decisão em pressão. Mais uma vez: combustível é opção.':'Com PIREP de windshear, esperar 15–20 min costuma eliminar a ameaça. Antecipação anula a emergência.'}]}},
+    {title:'Final curta — 600 ft AGL, pista 24',scene:()=>approach(),
+     text:s=>(s.flags.waited?'Mesmo após a espera, um último núcleo de chuva cruza a final. ':'')+'De repente a velocidade indicada sobe 15 kt e o nariz tende a subir. Segundos depois a razão de descida dispara e soa o alerta <b>WINDSHEAR</b>.',
+     data:()=>'IAS: +15 kt → −25 kt · V/S: −1.800 ft/min · alerta: WINDSHEAR',
+     opts:s=>{const w=!!s.flags.waited;return[
+      {t:'Reduzir a potência para corrigir o excesso de velocidade e manter a rampa',q:'critica',pts:0,risk:w?60:100,end:w?null:'accident',nar:w?'A redução coincide com a descendente: toque duro antes da zona de toque. Danos ao trem de pouso, sem feridos.':'A potência reduzida encontra a corrente descendente e o vento de cauda: a aeronave afunda abaixo da rampa e colide com o terreno antes da cabeceira.',fb:'Armadilha clássica do microburst: o ganho inicial de velocidade (vento de proa) induz a reduzir potência — logo antes da descendente e do vento de cauda. A primeira fase é o aviso, não a solução.'},
+      {t:'Arremeter imediatamente com a manobra de recuperação de windshear (potência máxima, atitude conforme o fabricante, sem alterar a configuração)',q:'otima',pts:10,risk:0,nar:'A aeronave ainda perde altura, mas a potência máxima e a atitude correta vencem a descendente. Você sai a 1.200 ft, aguarda em espera e pousa 20 min depois com vento calmo.',fb:'Diante de windshear, a resposta é imediata e por procedimento: arremeter. O treinamento e o briefing tornam isso automático.'},
+      {t:'Continuar e "segurar" a aeronave na rampa manualmente',q:'ruim',pts:2,risk:w?25:50,nar:'Pouso duro e longo com vento de cauda: a aeronave para nos últimos metros da pista.',fb:'Com alerta de windshear, a decisão já deveria estar tomada: arremeter. Insistir no pouso transforma variação de vento em excursão de pista.'}]}}
+  ],
+  landed:'Pouso em SBCG.',
+  accident:'A soma das ameaças aceitas ao longo do voo esgotou todas as margens. A aeronave sofre danos graves.',
+  lessons:['Latência do datalink: mostra onde a tempestade estava, não onde está.','Regra dos 20 NM e proibição de voo sob a bigorna (FAA AC 00-24C).','"Radar verde" não significa ar seguro.','Alternativa e combustível são barreiras decididas no solo (SMS proativo).','Física do microburst: o ganho inicial de velocidade é o aviso.']
+},
+
+cfit:{
+  title:'Missão 2 · Serra da Mantiqueira',
+  route:'SBMT → Campos do Jordão', aircraft:'Helicóptero biturbina · voo VFR diurno', etd:'ETD previsto 12:00Z · ETE ~50 min',
+  intro:'Você é o piloto de um helicóptero levando 3 passageiros do Campo de Marte para Campos do Jordão. Eles querem chegar antes das 13:30Z para um evento. A manhã amanheceu com nevoeiro e nuvens baixas no Vale do Paraíba.',
+  products:[
+    {id:'sat',label:'🛰️ Satélite',key:true,html:()=>satCfit()+'<p class="note">No canal visível, nuvens baixas aparecem brancas e "lisas". Observe onde estão em relação à rota e à serra.</p>'},
+    {id:'metar',label:'METAR',key:true,html:()=>`<pre class="mono">METAR SBMT 061200Z 14005KT 7000 BKN015 19/15 Q1019=
+METAR SBSJ 061200Z 06004KT 3000 -DZ BR BKN008 OVC015 16/15 Q1019=
+METAR SBTA 061200Z 05003KT 2500 BR OVC006 16/15 Q1019=</pre>
+<pre class="mono">Estação automática Campos do Jordão (1.648 m) · 12Z (simulada)
+T 12,8 °C · Td 12,2 °C · vento 040/05 kt · chuvisco</pre>`},
+    {id:'taf',label:'TAF',key:true,html:()=>`<pre class="mono">TAF SBMT 061100Z 0612/0712 14006KT 7000 BKN015
+ BECMG 0614/0616 9999 SCT025 RMK PGU=
+
+TAF SBSJ 061100Z 0612/0712 06005KT 4000 BR BKN010
+ TEMPO 0612/0615 2000 DZ BR OVC006
+ BECMG 0615/0617 10008KT 9999 SCT025 RMK PGU=
+
+TAF SBTA 061100Z 0612/0712 05004KT 3000 BR OVC007
+ BECMG 0615/0617 9999 SCT020 RMK PGU=</pre>`},
+    {id:'airmet',label:'AIRMET',key:true,html:()=>`<pre class="mono">SBBS AIRMET 3 VALID 061100/061500 SBBS-
+SBBS BRASILIA FIR MT OBSC OBS AT 1100Z WI S2245 W04620 - S2230 W04500 -
+S2300 W04500 - S2315 W04610 - S2245 W04620 STNR NC=
+
+SBBS AIRMET 4 VALID 061100/061500 SBBS-
+SBBS BRASILIA FIR OVC CLD 300/1500FT OBS AT 1100Z WI S2240 W04600 -
+S2255 W04500 - S2320 W04520 - S2305 W04610 - S2240 W04600 STNR WKN=</pre>`},
+    {id:'sigmet',label:'SIGMET',key:false,html:()=>`<pre class="mono">Nenhum SIGMET vigente para a área da rota.</pre><p class="note">Atenção: ausência de SIGMET não significa condição VFR. Teto baixo e montanha encoberta aparecem em AIRMET, METAR e TAF.</p>`},
+    {id:'adw',label:'AD WRNG',key:false,html:()=>`<pre class="mono">Nenhum aviso de aeródromo vigente para SBMT, SBSJ e SBTA.</pre>`}
+  ],
+  plan:[
+    {id:'base',q:'Pergunta de briefing: com T = 12,8 °C e Td = 12,2 °C em Campos do Jordão, qual a base estimada das nuvens? (H ≈ 125 × (T − Td), em metros)',opts:[
+      {t:'≈ 750 m (≈ 2.500 ft)',q:'ruim',pts:0,fb:'125 × 0,6 = 75 m, não 750 m. Um erro de casa decimal aqui é a diferença entre VFR e CFIT.'},
+      {t:'≈ 1.500 m (≈ 5.000 ft)',q:'ruim',pts:0,fb:'T − Td = 0,6 °C → 125 × 0,6 ≈ 75 m. Ar praticamente saturado = nuvem encostada no relevo.'},
+      {t:'≈ 75 m (≈ 250 ft)',q:'otima',pts:6,fb:'Correto: 125 × 0,6 ≈ 75 m acima da estação. Com a estação a 1.648 m, a serra está praticamente dentro da nuvem.'}]},
+    {id:'hora',q:'Decisão de horário:',opts:[
+      {t:'Decolar às 12Z para cumprir o horário dos passageiros',q:'ruim',pts:1,flags:{early:true},fb:'Às 12Z o vale estava com teto de 600–800 ft e a serra encoberta (AIRMET MT OBSC). A pressão do horário é um perigo clássico.'},
+      {t:'Adiar para ~15Z, após a melhora prevista no TAF, e refazer o briefing antes de decolar',q:'otima',pts:7,flags:{early:false},fb:'O TAF indicava melhora entre 15Z e 17Z. Adiar e reconsultar é a decisão proativa que cumpre a missão com segurança.'},
+      {t:'Cancelar o voo',q:'aceitavel',pts:5,end:'cancelled',endText:'Voo cancelado em solo.',fb:'Decisão segura, mas o TAF mostrava janela de melhora: adiar teria cumprido a missão com segurança.'}]},
+    {id:'rota',q:'Escolha da rota:',opts:[
+      {t:'Direta, cruzando os morros — menor tempo de voo',q:'critica',pts:0,flags:{route:'direta'},fb:'A rota direta passa por relevo encoberto, sem pontos de pouso de precaução. Diminui o tempo e elimina as saídas.'},
+      {t:'Direta, e se fechar uso um procedimento GPS "caseiro" gravado no FMS',q:'critica',pts:0,flags:{route:'gps'},fb:'Procedimento não certificado não garante separação de obstáculos. Esse foi um dos achados do acidente do PT-FPS (CENIPA).'},
+      {t:'Pelo Vale do Paraíba, com SBSJ e SBTA como pontos de pouso de precaução, subindo a serra só com visual',q:'otima',pts:7,flags:{route:'vale'},fb:'A rota pelo vale mantém saídas (aeródromos e terreno mais baixo) e um ponto claro de decisão antes da serra.'}]}
+  ],
+  steps:[
+    {title:'Decolagem e saída de SBMT',
+     scene:s=>profile({base:s.flags.early?95:60,top:15,heli:[90,135],lbl:s.flags.early?'Teto 1.500 ft · vis 7 km':'Teto 2.500 ft · vis >10 km'}),
+     text:s=>s.flags.early?'Decolagem às 12:00Z. Sobre São Paulo, visibilidade de 7 km e teto de 1.500 ft. Um passageiro pergunta: "Vamos chegar a tempo, né?"':'Decolagem às 15:10Z, após novo briefing. Sobre São Paulo, céu melhorando. Um passageiro reclama do atraso: "Será que ainda dá tempo?"',
+     data:s=>s.flags.early?'SBSJ 1215Z: 2500 BR BKN007 OVC015':'SBSJ 1500Z: 8000 SCT015 BKN030 · AIRMET MT OBSC ainda válido até 15Z',
+     opts:s=>[
+      {t:'Prometer aos passageiros que vai dar tempo',q:'ruim',pts:0,risk:15,nar:'Você acaba de criar uma pressão extra para si mesmo.',fb:'Compromisso com horário cria "get-there-itis" (pressão para chegar). Em muitos acidentes por CFIT, o horário pesou mais que os mínimos.'},
+      {t:'Seguir e decidir "na hora", conforme o tempo estiver',q:'ruim',pts:2,risk:10,nar:'Sem critérios definidos, as decisões ficarão para quando você estiver com mais carga de trabalho.',fb:'Decidir na hora, com a nuvem à frente, é decidir sob estresse. Critérios definidos antes reduzem a carga mental.'},
+      {t:'Definir pontos de decisão (gates) e mínimos pessoais: abaixo deles, pouso de precaução ou retorno',q:'otima',pts:10,risk:0,nar:'Você briefa: "Se o teto ficar abaixo de 1.000 ft ou a visibilidade abaixo de 3 km, pouso em SBSJ ou retorno." A decisão difícil já está tomada.',fb:'Gates e mínimos pessoais definidos antes transformam uma decisão emocional em decisão por critério.'}]},
+    {title:s=>s.flags.route==='vale'?'Vale do Paraíba — través de SBSJ':'Sobre os morros — rota direta',
+     scene:s=>profile({base:s.flags.early?150:110,top:40,heli:[130,s.flags.early?170:150],rain:s.flags.early,lbl:s.flags.early?'Teto ~600 ft · vis 2.500 m':'Teto ~1.500 ft · vis 6 km'}),
+     text:s=>(s.flags.route==='vale'?'Você está no través de SBSJ. ':'Na rota direta, o terreno sobe e não há aeródromo à vista; SBSJ fica a 15 NM fora da rota. ')+(s.flags.early?'O teto baixa para ~600 ft, chuvisco e névoa; fragmentos de nuvem (scud) abaixo da sua altura.':'Teto de ~1.500 ft no vale, mas à frente os topos da serra continuam encobertos.'),
+     data:s=>s.flags.early?'METAR SBSJ 061300Z 06004KT 2500 -DZ BR BKN006 OVC012 16/15 Q1019=':'METAR SBSJ 061600Z 10006KT 8000 SCT015 BKN025 20/15 Q1018=',
+     opts:s=>{const e=s.flags.early,v=s.flags.route==='vale';return[
+      {t:'Descer para ~300 ft para manter o contato visual com o solo',q:'critica',pts:0,risk:e?45:30,nar:'Fios, torres e o relevo subindo à frente: você voa cada vez mais baixo e mais devagar, com cada vez menos opções.',fb:'Descer para "ficar visual" é a porta do funil: menos altura, menos opções, mais obstáculos — e a serra continua subindo.'},
+      {t:e?'Manter os mínimos e seguir até o gate na base da serra; sem visual claro, retornar':'Manter altura e mínimos, seguir até o gate na base da serra; sem visual claro, retornar',q:e?'aceitavel':'otima',pts:e?5:10,risk:e?15:0,nar:e?'Você segue, mas já abaixo dos seus mínimos pessoais. Até aqui, sem problemas.':'Condições dentro dos seus mínimos. Você segue para o gate.',fb:e?'Seguir com gate definido é melhor que improvisar, mas o teto já estava abaixo dos mínimos que você mesmo definiria. Pousar em SBSJ era o mais prudente.':'Com teto de 1.500 ft no vale, seguir até o gate com critério de retorno é exatamente o planejado.'},
+      {t:'Pouso de precaução em SBSJ e aguardar a melhora',q:e?'otima':'aceitavel',pts:e?10:7,risk:0,end:'precaution',endText:'Pouso de precaução em SBSJ.',nar:e?'Você pousa em SBSJ. Às 16Z o tempo abre e a viagem termina em segurança, com atraso.':'Pouso em SBSJ. Com as condições já melhorando, o pouso foi conservador, mas seguro.',fb:e?'Pouso de precaução é decisão de comandante, não fracasso. Com o teto caindo, era a melhor opção.':'Seguro, porém conservador: as condições já estavam dentro dos mínimos para seguir até o gate.'}]}},
+    {title:'Base da serra — início da subida',
+     scene:s=>profile({base:120,top:20,hole:true,heli:[200,150],lbl:'Topo encoberto · "buraco" aparente à frente'}),
+     text:s=>'Você chegou ao gate na base da serra. Os topos estão encobertos e há um <b>"buraco" de céu claro</b> aparente entre as nuvens, rumo à cidade. '+(s.flags.route==='gps'?'Lembra do procedimento GPS que você gravou no FMS.':'No FMS há um procedimento GPS "não oficial", deixado por um colega.'),
+     data:()=>'Estação Campos do Jordão 13Z (simulada): T 13,0 °C · Td 12,4 °C · chuvisco',
+     opts:s=>[
+      {t:'Curva de 180° e retorno ao vale (SBSJ) — missão adiada',q:'otima',pts:10,risk:0,end:'return',endText:'Retorno e pouso em SBSJ.',nar:'Você retorna ao vale e pousa em SBSJ. Os passageiros perdem o início do evento — e todos chegam vivos.',fb:'Retornar no gate é a decisão que quebra a cadeia do CFIT. T − Td = 0,6 °C mostrava nuvem encostada na serra (≈ 75 m).'},
+      {t:'Usar o procedimento GPS do FMS para "furar" a camada',q:'critica',pts:0,risk:100,end:'accident',nar:'O procedimento não certificado não considera o relevo real. Em IMC, a aeronave colide com a encosta (CFIT).',fb:'Procedimento não certificado não tem garantia de separação de obstáculos. Esse foi um dos achados do acidente do PT-FPS (Relatório CENIPA A-173/2018).'},
+      {t:'Entrar pelo "buraco" entre as nuvens e subir a serra',q:'critica',pts:0,risk:s.flags.early?55:40,nar:'O "buraco" se fecha atrás de você. Em segundos, só se vê branco.',fb:'Buracos em nuvem orográfica abrem e fecham em minutos. Entrar num funil de terreno com teto encostado no relevo é a geometria clássica do CFIT.'}]},
+    {title:'Entrada inadvertida em IMC',scene:()=>iimc(),
+     text:()=>'Chuvisco no para-brisa e, em segundos, o horizonte desaparece. Você está em IMC, perto do relevo, e o helicóptero começa a inclinar sem que você perceba.',
+     data:()=>'Atitude: inclinação 25° à esquerda · razão de descida aumentando · altitude de segurança (MSA) da área: 8.500 ft',
+     opts:s=>[
+      {t:'Descer para tentar recuperar o contato visual com o solo',q:'critica',pts:0,risk:100,end:'accident',nar:'A descida em IMC termina contra o terreno (CFIT).',fb:'Em IMC perto de relevo, descer é a decisão mais letal. A transição para IMC é um funil: a saída é para cima, nos instrumentos.'},
+      {t:'Procedimento IIMC: nivelar as asas pelos instrumentos, subir para a altitude de segurança e declarar emergência ao controle',q:'otima',pts:10,risk:-20,nar:'Asas niveladas, potência de subida, olhos nos instrumentos. A 8.500 ft você estabiliza e o controle responde.',fb:'O procedimento IIMC (nivelar, subir, estabilizar, comunicar) é a última barreira. Por isso deve ser treinado e briefado, mesmo em voo VFR.'},
+      {t:'Fazer uma curva apertada de 180° olhando para fora para sair da nuvem',q:'ruim',pts:0,risk:50,nar:'Sem referência externa, a curva se aperta sozinha. O ouvido interno diz que você está nivelado — os instrumentos dizem o contrário.',fb:'Curva por referência visual em IMC é o gatilho da desorientação espacial (ilusões vestibulares). A curva de 180° só funciona antes de entrar na nuvem ou pelos instrumentos.'}]},
+    {title:'Recuperação',
+     scene:()=>profile({base:170,top:110,heli:[200,80],lbl:'8.500 ft · acima da camada · vetoração radar'}),
+     text:()=>'Você está estabilizado acima da camada. O controle oferece vetoração radar. Os passageiros ainda perguntam por Campos do Jordão.',
+     data:()=>'SBSJ: 4000 BR BKN010 · SBMT: 8000 BKN020 · Campos do Jordão: encoberto',
+     opts:s=>[
+      {t:'Procurar um buraco nas nuvens para descer e continuar para Campos do Jordão',q:'critica',pts:0,risk:70,nar:'Você repete a mesma armadilha da qual acabou de escapar.',fb:'Depois de escapar de um IIMC, buscar outro buraco é repetir o erro. A missão acabou: o objetivo agora é pousar com segurança.'},
+      {t:'Aceitar a vetoração para SBSJ e pousar em emergência declarada',q:'otima',pts:10,risk:0,end:'landed',endText:'Pouso em SBSJ com emergência declarada.',nar:'Com apoio do controle, você pousa em SBSJ. Abalado, mas todos estão bem.',fb:'Usar todos os recursos (ATC, vetoração, aeródromo mais próximo) é gerenciamento de ameaças. Reporte o evento: ele vira dado preventivo no SMS.'},
+      {t:'Voltar para SBMT (melhor tempo) com vetoração',q:'aceitavel',pts:8,risk:0,end:'landed',endText:'Retorno e pouso em SBMT.',nar:'Voo mais longo, mas em condições melhores. Pouso seguro em SBMT.',fb:'Seguro. SBSJ era mais próximo, o que reduz o tempo de exposição após um evento de estresse.'}]}
+  ],
+  landed:'Pouso em Campos do Jordão.',
+  accident:'A soma das ameaças aceitas esgotou todas as margens: a aeronave colide com o terreno (CFIT).',
+  lessons:['Base de nuvens: H ≈ 125 × (T − Td) — T − Td pequeno = nuvem encostada no relevo.','Ausência de SIGMET não significa VFR: veja AIRMET, METAR e TAF.','O funil da transição inadvertida para IMC (IIMC).','Procedimento não certificado não é rota de fuga (caso PT-FPS).','Pressão para chegar e o valor do gate / pouso de precaução.']
+}};
+
+/* =========================================================
+   3) MOTOR DO JOGO
+   ========================================================= */
+let S;
+const val = (x,s) => typeof x==='function' ? x(s) : x;
+const QL = {otima:'Ótima',aceitavel:'Aceitável',ruim:'Ruim',critica:'Crítica'};
+
+function home(){
+  app.innerHTML=`<div class="card"><h2>Você decola com a meteorologia… ou contra ela?</h2>
+  <p>Escolha uma missão. Você vai passar por quatro fases:</p>
+  <p>1️⃣ <b>Briefing</b> — consulte os produtos meteorológicos (contam pontos).<br>
+  2️⃣ <b>Planejamento</b> — responda e tome as decisões em solo.<br>
+  3️⃣ <b>Voo</b> — 5 etapas, 3 opções em cada uma. Suas escolhas mudam o desfecho.<br>
+  4️⃣ <b>Debriefing</b> — pontuação e análise de cada decisão.</p>
+  <div class="warn">Dados 100% simulados, para fins educacionais. Manobras descritas de forma genérica: siga sempre o manual da aeronave e os procedimentos do operador.</div></div>
+  <div class="grid2">${Object.entries(MISSIONS).map(([k,m])=>`<div class="card mission" onclick="start('${k}')">
+   <span class="tag">${m.route}</span><span class="tag">${m.aircraft}</span><h3>${m.title}</h3><p class="note">${m.intro}</p><button class="btn">Iniciar</button></div>`).join('')}</div>`;
+  top0();
+}
+
+function start(mid){
+  S={mid,m:MISSIONS[mid],viewed:new Set(),tab:null,plan:{},flags:{},risk:0,log:[],step:0,end:null,endText:'',lastNar:null};
+  briefing();
+}
+
+function briefing(){
+  const m=S.m, P=m.products, cur=P.find(p=>p.id===S.tab);
+  app.innerHTML=`<div class="card"><span class="tag">${m.route}</span><span class="tag">${m.etd}</span>
+  <h2>Briefing meteorológico</h2><p class="note">Toque em cada produto para consultá-lo. Produtos consultados: <b>${S.viewed.size}/${P.length}</b></p>
+  <div class="tabs">${P.map(p=>`<button class="tab ${S.tab===p.id?'on':''}" onclick="openTab('${p.id}')">${p.label}${S.viewed.has(p.id)?'<span class="ck">✓</span>':''}</button>`).join('')}</div>
+  <div>${cur?cur.html():'<p class="note">Selecione um produto acima.</p>'}</div></div>
+  <div class="row"><button class="btn" onclick="planning()">Ir para o planejamento →</button><button class="btn sec" onclick="home()">Voltar</button></div>`;
+}
+function openTab(id){ S.tab=id; S.viewed.add(id); briefing(); }
+
+function planning(){
+  const m=S.m;
+  app.innerHTML=`<div class="card"><h2>Planejamento em solo</h2><p class="note">${m.aircraft} · ${m.etd}</p>
+  <p class="note">Você pode voltar ao briefing antes de decolar.</p></div>
+  ${m.plan.map((q,qi)=>`<div class="card"><p><b>${q.q}</b></p>${q.opts.map((o,oi)=>`<button class="opt ${S.plan[q.id]===oi?'sel':''}" onclick="pick('${q.id}',${oi})"><b>${'ABC'[oi]}</b>${o.t}</button>`).join('')}</div>`).join('')}
+  <div class="row"><button class="btn" ${m.plan.every(q=>S.plan[q.id]!==undefined)?'':'disabled'} onclick="commitPlan()">Confirmar planejamento e decolar ✈️</button>
+  <button class="btn sec" onclick="briefing()">← Voltar ao briefing</button></div>`;
+}
+function pick(qid,oi){ const y=window.scrollY; S.plan[qid]=oi; planning(); window.scrollTo(0,y); }
+
+function record(phase,title,opts,o){
+  const best=opts.reduce((a,b)=>b.pts>a.pts?b:a);
+  S.log.push({phase,title,choice:o.t,q:o.q,fb:o.fb,pts:o.pts,max:best.pts,best:o.pts<best.pts?best.t:null});
+}
+function commitPlan(){
+  for(const q of S.m.plan){
+    const o=q.opts[S.plan[q.id]];
+    record('Planejamento',q.q,q.opts,o);
+    Object.assign(S.flags,o.flags||{});
+    S.risk+=o.risk||0;
+    if(o.end){ S.end=o.end; S.endText=o.endText; return debrief(); }
+  }
+  S.step=0; S.lastNar=null; step();
+}
+
+function step(){
+  const st=S.m.steps[S.step], opts=st.opts(S);
+  app.innerHTML=`<div class="card"><div class="dots">${S.m.steps.map((_,i)=>`<span class="${i<S.step?'done':i===S.step?'now':''}"></span>`).join('')}</div>
+  <span class="tag">Etapa ${S.step+1}/5</span><span class="tag">${S.m.route}</span>
+  <h2>${val(st.title,S)}</h2>${st.scene(S)}
+  <p>${st.text(S)}</p><pre class="mono">${st.data(S)}</pre>
+  <p><b>O que você faz?</b></p>${opts.map((o,i)=>`<button class="opt" onclick="choose(${i})"><b>${'ABC'[i]}</b>${o.t}</button>`).join('')}</div>`;
+  top0();
+}
+function choose(i){
+  const st=S.m.steps[S.step], opts=st.opts(S), o=opts[i];
+  record('Voo · etapa '+(S.step+1),val(st.title,S),opts,o);
+  Object.assign(S.flags,o.flags||{});
+  S.risk=Math.max(0,S.risk+(o.risk||0));
+  if(o.end){ S.end=o.end; S.endText=o.endText||''; }
+  if(S.risk>=100 && S.end!=='accident'){ S.end='accident'; S.endText=S.m.accident; }
+  const last=S.step===S.m.steps.length-1;
+  if(!S.end && last){ S.end='landed'; S.endText=S.m.landed; }
+  app.innerHTML=`<div class="card"><h2>O que aconteceu</h2><div class="nar">${o.nar}</div>
+  ${S.end==='accident'&&o.end!=='accident'?`<p class="nar" style="border-color:var(--red);margin-top:10px">${S.m.accident}</p>`:''}
+  <p></p><button class="btn" onclick="${S.end?'debrief()':'next()'}">${S.end?'Ver debriefing →':'Próxima etapa →'}</button></div>`;
+  top0();
+}
+function next(){ S.step++; step(); }
+
+function debrief(){
+  const m=S.m;
+  // Pontos do briefing: produto-chave = 5, demais = 2
+  const bMax=m.products.reduce((a,p)=>a+(p.key?5:2),0);
+  const bPts=m.products.reduce((a,p)=>a+(S.viewed.has(p.id)?(p.key?5:2):0),0);
+  const dPts=S.log.reduce((a,l)=>a+l.pts,0), dMax=S.log.reduce((a,l)=>a+l.max,0);
+  let pct=Math.round(100*(bPts+dPts)/(bMax+dMax));
+  if(S.end==='accident') pct=Math.min(pct,30);
+  const missed=m.products.filter(p=>p.key&&!S.viewed.has(p.id)).map(p=>p.label.replace(/[^\wÀ-ú ]/g,'').trim());
+  let cls,head;
+  if(S.end==='accident'){cls='o-bad';head='💥 Acidente';}
+  else if(S.risk>=50){cls='o-mid';head='⚠️ Pouso com intercorrência';}
+  else if(S.end==='cancelled'){cls='o-mid';head='🛑 Voo cancelado';}
+  else{cls='o-ok';head={divert:'✅ Pouso seguro na alternativa',precaution:'✅ Pouso de precaução seguro',return:'✅ Retorno seguro — missão adiada',landed:'✅ Pouso seguro'}[S.end]||'✅ Pouso seguro';}
+  const grade=S.end==='accident'?'A física atmosférica venceu desta vez. Veja onde a cadeia poderia ter sido quebrada.':pct>=85?'Excelente — mentalidade proativa (SMS).':pct>=65?'Bom — alguns riscos aceitos sem necessidade.':pct>=45?'Regular — reveja o briefing e os pontos de decisão.':'Crítico — as barreiras foram sendo removidas uma a uma.';
+  app.innerHTML=`<div class="outcome ${cls}"><h2>${head}</h2><p>${S.endText}</p><div class="score">${pct}%</div><p>${grade}</p></div>
+  <div class="card"><h3>Briefing</h3><p>Produtos consultados: <b>${S.viewed.size}/${m.products.length}</b> · ${bPts}/${bMax} pontos.</p>
+  ${missed.length?`<p class="warn">Produtos-chave não consultados: <b>${missed.join(', ')}</b>.</p>`:'<p class="note">Você consultou todos os produtos-chave. 👏</p>'}</div>
+  <div class="card"><h3>Suas decisões</h3>${S.log.map(l=>`<div class="dec"><span class="tag">${l.phase}</span> <span class="badge q-${l.q}">${QL[l.q]}</span>
+  <p class="mut" style="font-size:13px;margin:6px 0 2px">${l.title}</p><p><b>Sua escolha:</b> ${l.choice}</p><p>${l.fb}</p>
+  ${l.best?`<p class="note">💡 Melhor opção: ${l.best}</p>`:''}</div>`).join('')}</div>
+  <div class="card"><h3>Conexão com a palestra</h3>${m.lessons.map(t=>`<p>▸ ${t}</p>`).join('')}</div>
+  <div class="row"><button class="btn" onclick="start('${S.mid}')">Jogar de novo</button><button class="btn sec" onclick="home()">Outra missão</button></div>`;
+  top0();
+}
+
+home();
+</script>
+</body>
